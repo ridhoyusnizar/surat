@@ -39,11 +39,6 @@ class m_disposisi extends CI_Model
     ];
   }
 
-  public function getAll()
-  {
-    return $this->db->get($this->_table)->result();
-  }
-
   public function getById($id)
   {
     return $this->db->get_where($this->_table, ["id_disposisi" => $id])->row();
@@ -77,32 +72,7 @@ class m_disposisi extends CI_Model
     return $query->result();
   }
 
-  public function save()
-  {
-    $post = $this->input->post();
-    $this->no_agenda = $post["no_agenda"];
-    $this->tanggal = $post["tanggal"];
-    $this->catatan_ketua = $post["catatan_ketua"];
-    $this->catatan = $post["catatan"];
-    $this->dari = $post["dari"];
-    $this->kepada = $post["kepada"];
-    $this->db->insert($this->_table, $this);
-  }
-
   public function updateStaff()
-  {
-    $post = $this->input->post();
-    $this->id = ["id_disposisi"];
-    $this->no_agenda = $post["no_agenda"];
-    $this->tanggal = $post["tanggal"];
-    $this->catatan = $post["catatan"];
-    $this->catatan_ketua = $post["catatan_ketua"];
-    $this->dari = $post["dari"];
-    $this->kepada = $post["kepada"];
-    $this->db->update($this->_table, $this, array('id_disposisi' => $post['id']));
-  }
-
-  public function updateKetua()
   {
     $post = $this->input->post();
     $this->id = ["id_disposisi"];
@@ -218,8 +188,6 @@ class m_disposisi extends CI_Model
     }
   }
 
-
-
   public function jumlahTerbaca()
   {
     $this->db->select('*');
@@ -284,23 +252,6 @@ class m_disposisi extends CI_Model
     return $query->result();
   }
 
-  public function getIdAll($id)
-  {
-    $this->db->select('*');
-    $this->db->from('surat_masuk');
-    $this->db->join("user", "surat_masuk.kepada = user.nama");
-    $this->db->join("disposisi", "surat_masuk.no_agenda = disposisi.no_agenda");
-    $this->db->where('user.nama', $this->session->userdata('ses_nama'));
-    $this->db->and('surat_masuk.no_agenda', $id);
-    $query = $this->db->get();
-    return $query->result();
-  }
-
-  function addDisposisi($_table, $data)
-  {
-    return $this->db->insert($_table, $data);
-  }
-
   public function save_batch($data)
   {
     return $this->db->insert_batch('disposisi', $data);
@@ -309,27 +260,5 @@ class m_disposisi extends CI_Model
   public function delete($id)
   {
     return $this->db->delete($this->_table, array("id_disposisi" => $id));
-  }
-
-  public function get_where(array $where = array())
-  {
-    $this->db->select('*');
-    $this->db->from("surat_masuk");
-    $this->db->join("user", "surat_masuk.kepada = user.nama");
-    $this->db->join("disposisi", "surat_masuk.no_agenda = disposisi.no_agenda");
-    $this->db->where($where);
-    return $this->db->get()->result();
-  }
-
-  public function search($keyword)
-  {
-    $this->db->like('no_agenda', $keyword);
-    $this->db->or_like('catatan_ketua', $keyword);
-    $this->db->or_like('catatan', $keyword);
-    $this->db->or_like('dari', $keyword);
-    $this->db->or_like('kepada', $keyword);
-    $result = $this->db->get($this->_table)->result(); // Tampilkan data siswa berdasarkan keyword
-
-    return $result;
   }
 }

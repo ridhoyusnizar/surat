@@ -159,10 +159,7 @@ class m_keluar extends CI_Model
         $config['allowed_types']        = 'jpg|png|pdf';
         $config['file_name']            = $this->no_surat_no;
         $config['overwrite']            = true;
-        $config['max_size']             = 10240; // 1MB
-        // $config['max_width']            = 1024;
-        // $config['max_height']           = 768;
-
+        $config['max_size']             = 10240;
         $this->load->library('upload', $config);
 
         if ($this->upload->do_upload('gambar')) {
@@ -197,40 +194,5 @@ class m_keluar extends CI_Model
         $kodemax = str_pad($kode, STR_PAD_LEFT);
         $kodejadi  = $kodemax;
         return $kodejadi;
-    }
-
-    function kode()
-    {
-        $cek = $this->db->query('SELECT id_surat_keluar FROM surat_keluar ORDER BY id_surat_keluar DESC LIMIT 1');
-        $ex = explode('/', $cek[no_surat]);
-
-        if (date('d') == '01') {
-            $a = '01';
-        } else {
-            $a = $ex[0] + 1;
-        }
-
-        $c = array('', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII');
-        $d = date('Y');
-        $no_surat = $a . '/' . $b . '/' . $c[date('n')] . '/' . $d;
-        echo $no_surat;
-    }
-
-    public function search($keyword)
-    {
-        $this->db->like('no_surat_no', $keyword);
-        $this->db->or_like('no_surat_noplus', $keyword);
-        $this->db->or_like('no_surat_kode', $keyword);
-        $this->db->or_like('no_surat_kelompok', $keyword);
-        $this->db->or_like('no_surat_romawi', $keyword);
-        $this->db->or_like('no_surat_tahun', $keyword);
-        $this->db->or_like('tanggal', $keyword);
-        $this->db->or_like('sifat', $keyword);
-        $this->db->or_like('sifat_surat_detail', $keyword);
-        $this->db->or_like('kepada', $keyword);
-        $this->db->or_like('perihal', $keyword);
-        $result = $this->db->get($this->_table)->result(); // Tampilkan data siswa berdasarkan keyword
-
-        return $result;
     }
 }

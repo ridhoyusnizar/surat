@@ -106,30 +106,6 @@ class m_masuk extends CI_Model
         return $this->db->get_where($this->_table, ["id_surat_masuk" => $id])->row();
     }
 
-    public function search($keyword)
-    {
-        $this->db->like('tanggal_agenda', $keyword);
-        $this->db->or_like('waktu_agenda', $keyword);
-        $this->db->or_like('no_agenda', $keyword);
-        $this->db->or_like('no_surat', $keyword);
-        $this->db->or_like('asal_surat', $keyword);
-        $this->db->or_like('sifat_surat', $keyword);
-        $this->db->or_like('sifat_surat_detail', $keyword);
-        $this->db->or_like('kelompok', $keyword);
-        $this->db->or_like('alamat', $keyword);
-        $this->db->or_like('perihal', $keyword);
-        $this->db->or_like('status', $keyword);
-        $this->db->or_like('catatan_masuk', $keyword);
-
-        $result = $this->db->get($this->_table)->result(); // Tampilkan data siswa berdasarkan keyword
-
-        return $result;
-    }
-
-    function add($_table, $data)
-    {
-        return $this->db->insert($_table, $data);
-    }
 
     public function save()
     {
@@ -186,25 +162,13 @@ class m_masuk extends CI_Model
         $this->db->update($this->_table, $this, array('id_surat_masuk' => $post['id']));
     }
 
-    public function updatedisposisi()
-    {
-        $post = $this->input->post();
-        $this->no_agenda = $post["no_agenda"];
-        $this->catatan_ketua = $post["catatan_ketua"];
-        $this->catatan = $post["catatan"];
-        $this->db->insert($this->_table, $this);
-    }
-
-
     private function _uploadImage()
     {
         $config['upload_path']          = './upload/suratmasuk/gambar/';
         $config['allowed_types']        = 'jpg|png|pdf';
         $config['file_name']            = $this->no_surat;
         $config['overwrite']            = true;
-        $config['max_size']             = 10240; // 1MB
-        // $config['max_width']            = 1024;
-        // $config['max_height']           = 768;
+        $config['max_size']             = 10240;
 
         $this->load->library('upload', $config);
 
@@ -240,22 +204,5 @@ class m_masuk extends CI_Model
         $kodemax = str_pad($kode, STR_PAD_LEFT);
         $kodejadi  = $kodemax;
         return $kodejadi;
-    }
-
-    function kode()
-    {
-        $cek = $this->db->query('SELECT id_surat_masuk FROM surat_masuk ORDER BY id_surat_masuk DESC LIMIT 1');
-        $ex = explode('/', $cek[no_surat]);
-
-        if (date('d') == '01') {
-            $a = '01';
-        } else {
-            $a = $ex[0] + 1;
-        }
-
-        $c = array('', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII');
-        $d = date('Y');
-        $no_surat = $a . '/' . $b . '/' . $c[date('n')] . '/' . $d;
-        echo $no_surat;
     }
 }

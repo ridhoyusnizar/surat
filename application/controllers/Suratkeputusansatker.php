@@ -15,20 +15,24 @@ class Suratkeputusansatker extends CI_Controller
     parent::__construct();
     $this->load->model('m_keputusan_satker');
     $this->load->model('m_disposisi', '', TRUE);
-    $this->load->model('login_model');
     $this->load->library('form_validation');
     $this->load->helper('url');
     if ($this->session->userdata('masuk') != TRUE) {
       $url = base_url();
       redirect($url);
     }
+    $data["notif"] = $this->m_disposisi->getNotifikasi();
+    $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
+    $this->load->vars($data);
+    $this->all_akses = in_array($this->session->userdata('akses'), [1, 2, 3, 4]);
+    $this->sistem_surat = in_array($this->session->userdata('akses'), [1, 3, 4]);
+    $this->edit_del_upl_add = in_array($this->session->userdata('akses'), [3, 4]);
+    $this->user_biasa = in_array($this->session->userdata('akses'), [1, 2]);
   }
 
   public function rekap()
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3' || $this->session->userdata('akses') == '1') {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
+    if ($this->sistem_surat) {
       $data['surat'] = $this->m_keputusan_satker->getAll();
       $this->load->view('templates/surat_keputusan_rekap', $data);
     } else {
@@ -38,22 +42,18 @@ class Suratkeputusansatker extends CI_Controller
 
   public function add()
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
+    if ($this->edit_del_upl_add) {
       $data['kode'] = $this->m_keputusan_satker->kode_();
       $data['surat'] = $this->m_keputusan_satker->getAll();
-      $surat = $this->m_keputusan_satker;
       $validation = $this->form_validation;
-      $validation->set_rules($surat->rules());
+      $validation->set_rules($this->m_keputusan_satker->rules());
 
       if ($validation->run()) {
-        $surat->save();
+        $this->m_keputusan_satker->save();
         $this->session->set_flashdata('success', 'Berhasil disimpan');
       }
 
       $this->load->view('templates/surat_keputusan_satker_entry', $data);
-      // var_dump($surat_keluar);
     } else {
       echo "Anda tidak berhak mengakses halaman ini";
     }
@@ -62,7 +62,7 @@ class Suratkeputusansatker extends CI_Controller
 
   public function delete($id = null)
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
+    if ($this->edit_del_upl_add) {
       if (!isset($id)) show_404();
 
       if ($this->m_keputusan_satker->delete($id)) {
@@ -75,20 +75,17 @@ class Suratkeputusansatker extends CI_Controller
 
   public function edit($id = null)
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
+    if ($this->edit_del_upl_add) {
       if (!isset($id)) redirect('suratkeputusan/rekap');
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-      $surat = $this->m_keputusan_satker;
       $validation = $this->form_validation;
-      $validation->set_rules($surat->rules());
+      $validation->set_rules($this->m_keputusan_satker->rules());
 
       if ($validation->run()) {
-        $surat->update();
+        $this->m_keputusan_satker->update();
         $this->session->set_flashdata('success', 'Berhasil disimpan');
       }
 
-      $data["surat"] = $surat->getById($id);
+      $data["surat"] = $this->m_keputusan_satker->getById($id);
       if (!$data["surat"]) show_404();
 
       $this->load->view("templates/surat_keputusan_satker_edit", $data);
@@ -99,11 +96,8 @@ class Suratkeputusansatker extends CI_Controller
 
   public function tampil($id = null)
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3' || $this->session->userdata('akses') == '1') {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-      $surat = $this->m_keputusan_satker;
-      $data["surat"] = $surat->getById($id);
+    if ($this->sistem_surat) {
+      $data["surat"] = $this->m_keputusan_satker->getById($id);
       if (!$data["surat"]) show_404();
 
       $this->load->view("templates/surat_keputusan_satker_tampil", $data);
@@ -114,11 +108,8 @@ class Suratkeputusansatker extends CI_Controller
 
   public function tampilPDF($id = null)
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3' || $this->session->userdata('akses') == '1') {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-      $surat = $this->m_keputusan_satker;
-      $data["surat"] = $surat->getById($id);
+    if ($this->sistem_surat) {
+      $data["surat"] = $this->m_keputusan_satker->getById($id);
       if (!$data["surat"]) show_404();
       $this->load->view("templates/file_keputusan_satker", $data);
     } else {

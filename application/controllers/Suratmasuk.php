@@ -25,28 +25,19 @@ class Suratmasuk extends CI_Controller
             $url = base_url();
             redirect($url);
         }
+        $data["notif"] = $this->m_disposisi->getNotifikasi();
+        $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
+        $this->load->vars($data);
+        $this->all_akses = in_array($this->session->userdata('akses'), [1, 2, 3, 4]);
+        $this->sistem_surat = in_array($this->session->userdata('akses'), [1, 3, 4]);
+        $this->edit_del_upl_add = in_array($this->session->userdata('akses'), [3, 4]);
+        $this->user_biasa = in_array($this->session->userdata('akses'), [1, 2]);
     }
 
     public function alur()
     {
-        if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3' || $this->session->userdata('akses') == '1' || $this->session->userdata('akses') == '2') {
-            $data["notif"] = $this->m_disposisi->getNotifikasi();
-            $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-            $this->load->view('templates/alur_surat', $data);
-        } else {
-            echo "Anda tidak berhak mengakses halaman ini";
-        }
-    }
-
-
-    public function search()
-    {
-        if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3' || $this->session->userdata('akses') == '1') {
-            $keyword = $this->input->post('keyword');
-            $data["notif"] = $this->m_disposisi->getNotifikasi();
-            $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-            $data['surat'] = $this->m_masuk->search($keyword);
-            $this->load->view('templates/surat_masuk_search_view', $data);
+        if ($this->all_akses) {
+            $this->load->view('templates/alur_surat');
         } else {
             echo "Anda tidak berhak mengakses halaman ini";
         }
@@ -54,11 +45,8 @@ class Suratmasuk extends CI_Controller
 
     public function kendali($id = null, $id_surat_masuk = null)
     {
-        if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3' || $this->session->userdata('akses') == '1' || $this->session->userdata('akses') == '2') {
-            $surat = $this->m_masuk;
-            $data["notif"] = $this->m_disposisi->getNotifikasi();
-            $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-            $data["surat"] = $surat->getById($id);
+        if ($this->all_akses) {
+            $data["surat"] = $this->m_masuk->getById($id);
             $data['user'] = $this->login_model->getNama();
             $data['user2'] = $this->login_model->getNama2();
             // TERBACA
@@ -78,25 +66,9 @@ class Suratmasuk extends CI_Controller
 
     public function rekap()
     {
-        if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3' || $this->session->userdata('akses') == '1') {
-            $data["notif"] = $this->m_disposisi->getNotifikasi();
-            $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
+        if ($this->all_akses) {
             $data['surat_masuk'] = $this->m_masuk->getAll();
-            $data['user'] = $this->login_model->getAlluser();
             $this->load->view('templates/surat_masuk_rekap', $data);
-        } else {
-            echo "Anda tidak berhak mengakses halaman ini";
-        }
-    }
-
-    public function rekapSaya()
-    {
-        if ($this->session->userdata('akses') == '1') {
-            $data["notif"] = $this->m_disposisi->getNotifikasi();
-            $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-            $data['surat'] = $this->m_masuk->getAll();
-            $data['user'] = $this->login_model->getAlluser();
-            $this->load->view('templates/surat_masuk_rekap_user', $data);
         } else {
             echo "Anda tidak berhak mengakses halaman ini";
         }
@@ -104,11 +76,8 @@ class Suratmasuk extends CI_Controller
 
     public function add()
     {
-        if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
-            $data["notif"] = $this->m_disposisi->getNotifikasi();
-            $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
+        if ($this->edit_del_upl_add) {
             $data['kode'] = $this->m_masuk->kode_();
-            $surat = $this->m_masuk;
             $validation = $this->form_validation;
             $validation->set_rules($this->m_masuk->rules());
 
@@ -125,7 +94,7 @@ class Suratmasuk extends CI_Controller
 
     public function delete($id_surat_masuk = null)
     {
-        if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
+        if ($this->edit_del_upl_add) {
             if (!isset($id_surat_masuk)) show_404();
 
             if ($this->m_masuk->delete($id_surat_masuk)) {
@@ -138,20 +107,17 @@ class Suratmasuk extends CI_Controller
 
     public function edit($id_surat_masuk = null)
     {
-        if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
+        if ($this->edit_del_upl_add) {
             if (!isset($id_surat_masuk)) redirect('suratmasuk/rekap');
-            $data["notif"] = $this->m_disposisi->getNotifikasi();
-            $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-            $surat = $this->m_masuk;
             $validation = $this->form_validation;
-            $validation->set_rules($surat->rules());
+            $validation->set_rules($this->m_masuk->rules());
 
             if ($validation->run()) {
-                $surat->update();
+                $this->m_masuk->update();
                 $this->session->set_flashdata('success', 'Berhasil disimpan');
             }
 
-            $data["surat"] = $surat->getById($id_surat_masuk);
+            $data["surat"] = $this->m_masuk->getById($id_surat_masuk);
             if (!$data["surat"]) show_404();
 
             $this->load->view("templates/surat_masuk_edit", $data);
@@ -164,18 +130,15 @@ class Suratmasuk extends CI_Controller
     {
         if ($this->session->userdata('akses') == '3') {
             if (!isset($id_surat_masuk)) redirect('disposisi/rekapSaya');
-            $data["notif"] = $this->m_disposisi->getNotifikasi();
-            $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-            $surat = $this->m_masuk;
             $validation = $this->form_validation;
-            $validation->set_rules($surat->rules());
+            $validation->set_rules($this->m_masuk->rules());
 
             if ($validation->run()) {
-                $surat->update();
+                $this->m_masuk->update();
                 $this->session->set_flashdata('success', 'Berhasil disimpan');
             }
 
-            $data["surat"] = $surat->getById($id_surat_masuk);
+            $data["surat"] = $this->m_masuk->getById($id_surat_masuk);
             if (!$data["surat"]) show_404();
 
             $this->load->view("templates/surat_masuk_disposisi_status", $data);
@@ -186,11 +149,8 @@ class Suratmasuk extends CI_Controller
 
     public function tampil($id = null)
     {
-        if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3' || $this->session->userdata('akses') == '1' || $this->session->userdata('akses') == '2') {
-            $data["notif"] = $this->m_disposisi->getNotifikasi();
-            $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-            $surat = $this->m_masuk;
-            $data["surat"] = $surat->getById($id);
+        if ($this->all_akses) {
+            $data["surat"] = $this->m_masuk->getById($id);
             if (!$data["surat"]) show_404();
             $this->load->view("templates/surat_masuk_tampil", $data);
         } else {
@@ -200,11 +160,8 @@ class Suratmasuk extends CI_Controller
 
     public function tampilPDF($id = null, $id_surat_masuk = null)
     {
-        if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3' || $this->session->userdata('akses') == '1' || $this->session->userdata('akses') == '2') {
-            $data["notif"] = $this->m_disposisi->getNotifikasi();
-            $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-            $surat = $this->m_masuk;
-            $data["surat"] = $surat->getById($id);
+        if ($this->all_akses) {
+            $data["surat"] = $this->m_masuk->getById($id);
             if (!$data["surat"]) show_404();
             // TERBACA
             $status_terbaca = '1';
@@ -214,58 +171,6 @@ class Suratmasuk extends CI_Controller
             );
             $a = $this->m_disposisi->updateTerbaca($id_surat_masuk, $r);
             $this->load->view("templates/file_masuk", $data);
-        } else {
-            echo "Anda tidak berhak mengakses halaman ini";
-        }
-    }
-
-    function uploadFile()
-    {
-        if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
-            $data = array();
-            // If file upload form submitted
-            if ($this->input->post('fileSubmit') && !empty($_FILES['files_masuk']['name'])) {
-                $filesCount = count($_FILES['files_masuk']['name']);
-                for ($i = 0; $i < $filesCount; $i++) {
-                    $_FILES['file']['name']     = $_FILES['files_masuk']['name'][$i];
-                    $_FILES['file']['type']     = $_FILES['files_masuk']['type'][$i];
-                    $_FILES['file']['tmp_name'] = $_FILES['files_masuk']['tmp_name'][$i];
-                    $_FILES['file']['error']     = $_FILES['files_masuk']['error'][$i];
-                    $_FILES['file']['size']     = $_FILES['files_masuk']['size'][$i];
-
-                    // File upload configuration
-                    $uploadPath = './upload/files/';
-                    $config['upload_path'] = $uploadPath;
-                    $config['allowed_types'] = 'jpg|jpeg|png|gif';
-
-                    // Load and initialize upload library
-                    $this->load->library('upload', $config);
-                    $this->upload->initialize($config);
-
-                    // Upload file to server
-                    if ($this->upload->do_upload('file')) {
-                        // Uploaded file data
-                        $fileData = $this->upload->data();
-                        $uploadData[$i]['file_name'] = $fileData['file_name'];
-                        $uploadData[$i]['uploaded_on'] = date("Y-m-d H:i:s");
-                    }
-                }
-
-                if (!empty($uploadData)) {
-                    // Insert files data into the database
-                    $insert = $this->m_file->insert($uploadData);
-
-                    // Upload status message
-                    $statusMsg = $insert ? 'Files uploaded successfully.' : 'Some problem occurred, please try again.';
-                    $this->session->set_flashdata('statusMsg', $statusMsg);
-                }
-            }
-
-            // Get files data from the database
-            $data['files_masuk'] = $this->m_file->getRows();
-
-            // Pass the files data to view
-            redirect(site_url('Suratmasuk/rekap'));
         } else {
             echo "Anda tidak berhak mengakses halaman ini";
         }

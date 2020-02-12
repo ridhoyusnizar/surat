@@ -128,9 +128,7 @@ class m_keputusan extends CI_Model
         $config['allowed_types']        = 'jpg|png|pdf';
         $config['file_name']            = $this->no_surat_no;
         $config['overwrite']            = true;
-        $config['max_size']             = 10240; // 1MB
-        // $config['max_width']            = 1024;
-        // $config['max_height']           = 768;
+        $config['max_size']             = 10240;
 
         $this->load->library('upload', $config);
 
@@ -166,37 +164,5 @@ class m_keputusan extends CI_Model
         $kodemax = str_pad($kode, STR_PAD_LEFT);
         $kodejadi  = $kodemax;
         return $kodejadi;
-    }
-
-    function kode()
-    {
-        $cek = $this->db->query('SELECT id_sk FROM surat_keputusan_pjb ORDER BY id_sk DESC LIMIT 1');
-        $ex = explode('/', $cek[no_surat]);
-
-        if (('Pjb') && ('Satker') == '01') {
-            $a = '01';
-        } else {
-            $a = $ex[0] + 1;
-        }
-
-        $c = array('', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII');
-        $d = date('Y');
-        $no_surat = $a . '/' . $b . '/' . $c[date('n')] . '/' . $d;
-        echo $no_surat;
-    }
-
-    public function search($keyword)
-    {
-        $this->db->like('no_surat_no', $keyword);
-        $this->db->or_like('no_surat_noplus', $keyword);
-        $this->db->or_like('no_surat_kode', $keyword);
-        $this->db->or_like('no_surat_romawi', $keyword);
-        $this->db->or_like('no_surat_tahun', $keyword);
-        $this->db->or_like('tanggal', $keyword);
-        $this->db->or_like('kelompok', $keyword);
-        $this->db->or_like('perihal', $keyword);
-        $result = $this->db->get($this->_table)->result(); // Tampilkan data siswa berdasarkan keyword
-
-        return $result;
     }
 }

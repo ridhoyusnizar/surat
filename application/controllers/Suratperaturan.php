@@ -15,7 +15,6 @@ class Suratperaturan extends CI_Controller
     parent::__construct();
     $this->load->model('m_peraturan');
     $this->load->model('m_disposisi', '', TRUE);
-    $this->load->model('login_model');
     $this->load->helper('tgl_indo');
     $this->load->library('form_validation');
     $this->load->helper('url');
@@ -23,13 +22,18 @@ class Suratperaturan extends CI_Controller
       $url = base_url();
       redirect($url);
     }
+    $data["notif"] = $this->m_disposisi->getNotifikasi();
+    $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
+    $this->load->vars($data);
+    $this->all_akses = in_array($this->session->userdata('akses'), [1, 2, 3, 4]);
+    $this->sistem_surat = in_array($this->session->userdata('akses'), [1, 3, 4]);
+    $this->edit_del_upl_add = in_array($this->session->userdata('akses'), [3, 4]);
+    $this->user_biasa = in_array($this->session->userdata('akses'), [1, 2]);
   }
 
   public function rekap()
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3' || $this->session->userdata('akses') == '1') {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
+    if ($this->sistem_surat) {
       $data['surat'] = $this->m_peraturan->getAll();
       $this->load->view('templates/surat_peraturan_rekap', $data);
     } else {
@@ -39,17 +43,14 @@ class Suratperaturan extends CI_Controller
 
   public function add()
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
+    if ($this->edit_del_upl_add) {
       $data['kode'] = $this->m_peraturan->kode_();
       $data['surat'] = $this->m_peraturan->getAll();
-      $surat = $this->m_peraturan;
       $validation = $this->form_validation;
-      $validation->set_rules($surat->rules());
+      $validation->set_rules($this->m_peraturan->rules());
 
       if ($validation->run()) {
-        $surat->save();
+        $this->m_peraturan->save();
         $this->session->set_flashdata('success', 'Berhasil disimpan');
       }
 
@@ -62,7 +63,7 @@ class Suratperaturan extends CI_Controller
 
   public function delete($id = null)
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
+    if ($this->edit_del_upl_add) {
       if (!isset($id)) show_404();
 
       if ($this->m_peraturan->delete($id)) {
@@ -75,20 +76,17 @@ class Suratperaturan extends CI_Controller
 
   public function edit($id = null)
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
+    if ($this->edit_del_upl_add) {
       if (!isset($id)) redirect('suratperaturan/rekap');
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-      $surat = $this->m_peraturan;
       $validation = $this->form_validation;
-      $validation->set_rules($surat->rules());
+      $validation->set_rules($this->m_peraturan->rules());
 
       if ($validation->run()) {
-        $surat->update();
+        $this->m_peraturan->update();
         $this->session->set_flashdata('success', 'Berhasil disimpan');
       }
 
-      $data["surat"] = $surat->getById($id);
+      $data["surat"] = $this->m_peraturan->getById($id);
       if (!$data["surat"]) show_404();
 
       $this->load->view("templates/surat_peraturan_edit", $data);
@@ -99,11 +97,8 @@ class Suratperaturan extends CI_Controller
 
   public function tampil($id = null)
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3' || $this->session->userdata('akses') == '1') {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-      $surat = $this->m_peraturan;
-      $data["surat"] = $surat->getById($id);
+    if ($this->sistem_surat) {
+      $data["surat"] = $this->m_peraturan->getById($id);
       if (!$data["surat"]) show_404();
 
       $this->load->view("templates/surat_peraturan_tampil", $data);
@@ -114,11 +109,8 @@ class Suratperaturan extends CI_Controller
 
   public function tampilPDF($id = null)
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3' || $this->session->userdata('akses') == '1') {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-      $surat = $this->m_peraturan;
-      $data["surat"] = $surat->getById($id);
+    if ($this->sistem_surat) {
+      $data["surat"] = $this->m_peraturan->getById($id);
       if (!$data["surat"]) show_404();
       $this->load->view("templates/file_peraturan", $data);
     } else {

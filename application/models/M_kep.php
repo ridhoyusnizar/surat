@@ -123,9 +123,7 @@ class m_kep extends CI_Model
         $config['allowed_types']        = 'jpg|png|pdf';
         $config['file_name']            = $this->no_surat_no;
         $config['overwrite']            = true;
-        $config['max_size']             = 10240; // 1MB
-        // $config['max_width']            = 1024;
-        // $config['max_height']           = 768;
+        $config['max_size']             = 10240;
 
         $this->load->library('upload', $config);
 
@@ -161,22 +159,5 @@ class m_kep extends CI_Model
         $kodemax = str_pad($kode, STR_PAD_LEFT);
         $kodejadi  = $kodemax;
         return $kodejadi;
-    }
-
-    function kode()
-    {
-        $cek = $this->db->query('SELECT id_p FROM keputusan ORDER BY id_k DESC LIMIT 1');
-        $ex = explode('/', $cek[no_surat]);
-
-        if (date('d') == '01') {
-            $a = '01 v';
-        } else {
-            $a = $ex[0] + 1;
-        }
-
-        $c = array('', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII');
-        $d = date('Y');
-        $no_surat = $a . '/' . $b . '/' . $c[date('n')] . '/' . $d;
-        echo $no_surat;
     }
 }

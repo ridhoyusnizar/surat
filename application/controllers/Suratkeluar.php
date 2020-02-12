@@ -14,7 +14,6 @@ class Suratkeluar extends CI_Controller
   {
     parent::__construct();
     $this->load->model('m_keluar');
-    $this->load->model('login_model');
     $this->load->model('m_disposisi', '', TRUE);
     $this->load->library('form_validation');
     $this->load->helper('tgl_indo');
@@ -23,30 +22,19 @@ class Suratkeluar extends CI_Controller
       $url = base_url();
       redirect($url);
     }
-  }
-
-  public function dashboard()
-  {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3' || $this->session->userdata('akses') == '1' || $this->session->userdata('akses') == '2') {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-      $data["terbaca"] = $this->m_disposisi->jumlahTerbaca();
-      $data["semua"] = $this->m_disposisi->semuaNotifikasi();
-      $data["belum"] = $this->m_disposisi->jumlahBelum();
-      $data["selesai"] = $this->m_disposisi->jumlahSelesai();
-      $data["ketum"] = $this->m_dashboard->jumlahKetuaUmum();
-      $data['surat_keluar'] = $this->m_keluar->getAll();
-      $this->load->view('templates/dashboard', $data);
-    } else {
-      echo "Anda tidak berhak mengakses halaman ini";
-    }
+    $data["notif"] = $this->m_disposisi->getNotifikasi();
+    $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
+    $this->load->vars($data);
+    $this->all_akses = in_array($this->session->userdata('akses'), [1, 2, 3, 4]);
+    $this->sistem_surat = in_array($this->session->userdata('akses'), [1, 3, 4]);
+    $this->edit_del_upl_add = in_array($this->session->userdata('akses'), [3, 4]);
+    $this->user_biasa = in_array($this->session->userdata('akses'), [1, 2]);
   }
 
   public function rekap()
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3' || $this->session->userdata('akses') == '1') {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
+    if ($this->sistem_surat) {
+
       $data['surat_keluar'] = $this->m_keluar->getAll();
       $this->load->view('templates/surat_keluar_rekap', $data);
     } else {
@@ -54,57 +42,16 @@ class Suratkeluar extends CI_Controller
     }
   }
 
-  public function rekapSaya()
-  {
-    if ($this->session->userdata('akses') == '1') {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-      $data['surat_keluar'] = $this->m_keluar->getAll();
-      $this->load->view('templates/surat_keluar_rekap_user', $data);
-    } else {
-      echo "Anda tidak berhak mengakses halaman ini";
-    }
-  }
-
-  public function search()
-  {
-    if ($this->session->userdata('akses') == '2' || $this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
-      $keyword = $this->input->post('keyword');
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-      $data['surat_keluar'] = $this->m_keluar->search($keyword);
-      $this->load->view('templates/surat_keluar_search_view', $data);
-    } else {
-      echo "Anda tidak berhak mengakses halaman ini";
-    }
-  }
-
-  public function tampilSuratKeluar()
-  {
-    if ($this->session->userdata('akses') == '1' || $this->session->userdata('akses') == '2' ||  $this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-      $data['kode'] = $this->m_keluar->kode_();
-      $data['surat_keluar'] = $this->m_keluar->getAll();
-      $this->load->view('templates/surat_keluar_tampil', $data);
-    } else {
-      echo "Anda tidak berhak mengakses halaman ini";
-    }
-  }
-
   public function add()
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
+    if ($this->edit_del_upl_add) {
       $data['kode'] = $this->m_keluar->kode_();
       $data['surat_keluar'] = $this->m_keluar->getAll();
-      $surat_keluar = $this->m_keluar;
       $validation = $this->form_validation;
-      $validation->set_rules($surat_keluar->rules());
+      $validation->set_rules($this->m_keluar->rules());
 
       if ($validation->run()) {
-        $surat_keluar->save();
+        $this->m_keluar->save();
         $this->session->set_flashdata('success', 'Berhasil disimpan');
       }
 
@@ -117,7 +64,7 @@ class Suratkeluar extends CI_Controller
 
   public function delete($id = null)
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
+    if ($this->edit_del_upl_add) {
       if (!isset($id)) show_404();
 
       if ($this->m_keluar->delete($id)) {
@@ -130,20 +77,17 @@ class Suratkeluar extends CI_Controller
 
   public function edit($id = null)
   {
-    if ($this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3') {
+    if ($this->edit_del_upl_add) {
       if (!isset($id)) redirect('suratkeluar/rekap');
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-      $surat_keluar = $this->m_keluar;
       $validation = $this->form_validation;
-      $validation->set_rules($surat_keluar->rules());
+      $validation->set_rules($this->m_keluar->rules());
 
       if ($validation->run()) {
-        $surat_keluar->update();
+        $this->m_keluar->update();
         $this->session->set_flashdata('success', 'Berhasil disimpan');
       }
 
-      $data["surat_keluar"] = $surat_keluar->getById($id);
+      $data["surat_keluar"] = $this->m_keluar->getById($id);
       if (!$data["surat_keluar"]) show_404();
 
       $this->load->view("templates/surat_keluar_edit", $data);
@@ -154,11 +98,8 @@ class Suratkeluar extends CI_Controller
 
   public function tampil($id = null)
   {
-    if (($this->session->userdata('akses') == '1' || $this->session->userdata('akses') == '2' || $this->session->userdata('akses') == '4' || $this->session->userdata('akses') == '3')) {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-      $surat_keluar = $this->m_keluar;
-      $data["surat_keluar"] = $surat_keluar->getById($id);
+    if ($this->sistem_surat) {
+      $data["surat_keluar"] = $this->m_keluar->getById($id);
       if (!$data["surat_keluar"]) show_404();
 
       $this->load->view("templates/surat_keluar_tampil", $data);
@@ -169,11 +110,8 @@ class Suratkeluar extends CI_Controller
 
   public function tampilPDF($id = null)
   {
-    if (($this->session->userdata('akses') == '1' || $this->session->userdata('akses') == '2' || $this->session->userdata('akses') == '4' ||  $this->session->userdata('akses') == '3')) {
-      $data["notif"] = $this->m_disposisi->getNotifikasi();
-      $data["hitung"] = $this->m_disposisi->jumlahNotifikasi();
-      $surat_keluar = $this->m_keluar;
-      $data["surat_keluar"] = $surat_keluar->getById($id);
+    if ($this->sistem_surat) {
+      $data["surat_keluar"] = $this->m_keluar->getById($id);
       if (!$data["surat_keluar"]) show_404();
       $this->load->view("templates/file_keluar", $data);
     } else {
