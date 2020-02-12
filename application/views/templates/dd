@@ -1,0 +1,35 @@
+  <?php foreach ($suratKeluar as $row) {
+        $suratkeluar[] = $row->jumlah;
+        $tanggal[] = $row->tanggal;
+    }
+    ?>
+
+    <?php foreach ($keputusan as $row) {
+        $keputusan[] = $row->jumlah;
+        $tanggal[] = $row->tanggal;
+    }
+    ?>
+
+    <?php foreach ($keputusanpjb as $row) {
+        $keputusanpjb[] = $row->jumlah;
+        $tanggal[] = $row->tanggal;
+    }
+    ?>
+
+    <?php foreach ($keputusansatker as $row) {
+        $keputusansatker[] = $row->jumlah;
+        $tanggal[] = $row->tanggal;
+    }
+    ?>
+
+    <?php foreach ($peraturan as $row) {
+        $suratperaturan[] = $row->jumlah;
+        $tanggal[] = $row->tanggal;
+    }
+    ?>
+
+    <?php foreach ($surattugas as $row) {
+        $surattugas[] = $row->jumlah;
+        $tanggal[] = $row->tanggal;
+    }
+    ?>
