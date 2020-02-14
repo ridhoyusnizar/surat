@@ -3,7 +3,11 @@
 
 <head>
 	<?php $this->load->view("admin/head.php") ?>
-
+	<style>
+		.dataTables_filter {
+			display: none;
+		}
+	</style>
 </head>
 
 <body id="page-top">
@@ -35,10 +39,10 @@
 					<div class="card-body">
 						<a class="btn btn-success" href="<?php echo base_url() ?>suratmasuk/export" style="float: right;"><i class="fas fa-file-excel"></i> Export Excel</a><br><br>
 						<?php echo form_open('suratmasuk/search') ?>
-						<!-- <div class="form-group row" style="float: right;">
+						<div class="form-group row" style="float: right;">
 							<div class="col-sm-8"><input class="form-control" type="text" name="keyword" placeholder="search"></div>
 							<div class="col-sm-2"><input class="btn btn-primary" type="submit" name="search_submit" value="Cari"></div>
-						</div> -->
+						</div>
 						<?php echo form_close() ?>
 						<div class="table-responsive">
 							<table class="table table-hover" id="dataTable" width="100%" cellspacing="0">
