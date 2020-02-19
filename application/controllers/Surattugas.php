@@ -51,7 +51,7 @@ class Surattugas extends CI_Controller
             $validation->set_rules($this->m_tugas->rules());
 
             if ($validation->run()) {
-                $this->m_tugast->save();
+                $this->m_tugas->save();
                 $this->session->set_flashdata('success', 'Berhasil disimpan');
             }
 
